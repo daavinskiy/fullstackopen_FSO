@@ -20,3 +20,4 @@ sequenceDiagram
     Palvelin-->>Selain: Muistiinpanot JSON-muodossa
 
     Note right of Selain: JavaScript näyttää muistiinpanot sivulla
+```
