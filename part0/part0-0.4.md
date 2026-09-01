@@ -1,5 +1,4 @@
-````markdown
-# 0.4 tehtävä:
+# 0.4 New note:
 
 ```mermaid
 sequenceDiagram
