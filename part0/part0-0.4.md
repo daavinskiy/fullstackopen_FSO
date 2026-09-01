@@ -28,3 +28,4 @@ sequenceDiagram
     Palvelin-->>Selain: JSON-tiedot muistiinpanoista
 
     Note right of Selain: Selain näyttää muistiinpanot sivulla
+```
