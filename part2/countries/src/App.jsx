@@ -5,6 +5,7 @@ const App = () => {
   const [countries, setCountries] = useState([])
   const [search, setSearch] = useState('')
   const [selectedCountry, setSelectedCountry] = useState(null)
+  const [weather, setWeather] = useState(null)
 
   useEffect(() => {
     axios
@@ -14,9 +15,27 @@ const App = () => {
       })
   }, [])
 
+  useEffect(() => {
+    if (selectedCountry === null) {
+      return
+    }
+
+    const capital = selectedCountry.capital[0]
+    const api_key = import.meta.env.VITE_OPENWEATHER_API_KEY
+
+    axios
+      .get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${capital}&units=metric&appid=${api_key}`
+      )
+      .then(response => {
+        setWeather(response.data)
+      })
+  }, [selectedCountry])
+
   const handleSearchChange = (event) => {
     setSearch(event.target.value)
     setSelectedCountry(null)
+    setWeather(null)
   }
 
   const countriesToShow = countries.filter(country =>
@@ -74,6 +93,29 @@ const App = () => {
             alt={`Flag of ${selectedCountry.name.common}`}
             width="150"
           />
+
+          {weather && (
+            <div>
+              <h2>Weather in {selectedCountry.capital[0]}</h2>
+
+              <p>
+                temperature {weather.main.temp} Celsius
+              </p>
+
+              <img
+                src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+                alt={weather.weather[0].description}
+              />
+
+              <p>
+                {weather.weather[0].description}
+              </p>
+
+              <p>
+                wind {weather.wind.speed} m/s
+              </p>
+            </div>
+          )}
         </div>
       ) : (
         <div>
