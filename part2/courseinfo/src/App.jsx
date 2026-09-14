@@ -38,11 +38,9 @@ const Header = ({ name }) => {
 }
 
 const Content = ({ parts }) => {
-  let total = 0
-
-  parts.forEach(part => {
-    total += part.exercises
-  })
+  const total = parts.reduce((sum, part) => {
+    return sum + part.exercises
+  }, 0)
 
   return (
     <div>
