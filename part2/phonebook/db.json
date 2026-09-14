@@ -22,8 +22,13 @@
     },
     {
       "name": "Matti",
-      "number": "050-123456",
+      "number": "999-9999999",
       "id": "OPxSHBL5aEA"
+    },
+    {
+      "name": "Daniil Avdeev",
+      "number": "123-456789",
+      "id": "YM2Y0yb3M1g"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

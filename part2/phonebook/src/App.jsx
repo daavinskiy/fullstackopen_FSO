@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
+import Notification from './Notification'
 
 const Filter = ({ search, handleSearchChange }) => {
   return (
@@ -65,6 +66,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [search, setSearch] = useState('')
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
     personService
@@ -84,6 +86,14 @@ const App = () => {
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value)
+  }
+
+  const showNotification = (message) => {
+    setNotification(message)
+
+    setTimeout(() => {
+      setNotification(null)
+    }, 5000)
   }
 
   const addName = (event) => {
@@ -113,8 +123,10 @@ const App = () => {
               person.id === data.id ? data : person
             )
           )
+
           setNewName('')
           setNewNumber('')
+          showNotification(`${data.name} number updated`)
         })
 
       return
@@ -131,6 +143,7 @@ const App = () => {
         setPersons(persons.concat(data))
         setNewName('')
         setNewNumber('')
+        showNotification(`${data.name} added`)
       })
   }
 
@@ -159,6 +172,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+
+      <Notification message={notification} />
 
       <Filter
         search={search}
