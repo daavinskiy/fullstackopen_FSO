@@ -4,6 +4,7 @@ import axios from 'axios'
 const App = () => {
   const [countries, setCountries] = useState([])
   const [search, setSearch] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState(null)
 
   useEffect(() => {
     axios
@@ -15,6 +16,7 @@ const App = () => {
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value)
+    setSelectedCountry(null)
   }
 
   const countriesToShow = countries.filter(country =>
@@ -47,13 +49,44 @@ const App = () => {
         />
       </div>
 
-      <div>
-        {countriesToShow.map(country => (
-          <p key={country.cca3}>
-            {country.name.common}
+      {selectedCountry ? (
+        <div>
+          <h1>{selectedCountry.name.common}</h1>
+
+          <p>
+            capital {selectedCountry.capital}
           </p>
-        ))}
-      </div>
+
+          <p>
+            area {selectedCountry.area}
+          </p>
+
+          <h2>languages:</h2>
+
+          <ul>
+            {Object.values(selectedCountry.languages).map(language => (
+              <li key={language}>{language}</li>
+            ))}
+          </ul>
+
+          <img
+            src={selectedCountry.flags.png}
+            alt={`Flag of ${selectedCountry.name.common}`}
+            width="150"
+          />
+        </div>
+      ) : (
+        <div>
+          {countriesToShow.map(country => (
+            <p key={country.cca3}>
+              {country.name.common}{' '}
+              <button onClick={() => setSelectedCountry(country)}>
+                show
+              </button>
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
