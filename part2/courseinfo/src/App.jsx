@@ -38,6 +38,12 @@ const Header = ({ name }) => {
 }
 
 const Content = ({ parts }) => {
+  let total = 0
+
+  parts.forEach(part => {
+    total += part.exercises
+  })
+
   return (
     <div>
       {parts.map(part => (
@@ -47,6 +53,7 @@ const Content = ({ parts }) => {
           exercises={part.exercises}
         />
       ))}
+      <p>Number of exercises {total}</p>
     </div>
   )
 }
