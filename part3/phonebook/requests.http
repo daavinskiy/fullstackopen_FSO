@@ -1,9 +1,21 @@
 DELETE http://localhost:3001/api/persons/2
 
+###
+
 POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
   "name": "Matti Meikäläinen",
   "number": "040-5555555"
+}
+
+###
+
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "name": "Linus Torvalds",
+  "number": "040-1234567"
 }
