@@ -55,24 +55,29 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(person => person.id === id)
-
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
-app.get('/info', (request, response) => {
-  const info = `
-    <p>Phonebook has info for ${persons.length} people</p>
-    <p>Request received at: ${new Date()}</p>
-  `
+app.get('/info', (request, response, next) => {
+  Person.countDocuments({})
+    .then(count => {
+      const info = `
+        <p>Phonebook has info for ${count} people</p>
+        <p>Request received at: ${new Date()}</p>
+      `
 
-  response.send(info)
+      response.send(info)
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
