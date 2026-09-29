@@ -2,15 +2,15 @@ const mongoose = require('mongoose')
 
 const personSchema = new mongoose.Schema({
   name: {
-  type: String,
-  minLength: 3,
-  required: true
+    type: String,
+    minLength: 3,
+    required: true
   },
   number: {
-  type: String,
-  minLength: 8,
-  required: true,
-  validate: {
+    type: String,
+    minLength: 8,
+    required: true,
+    validate: {
       validator: function(value) {
         return /^\d{2,3}-\d+$/.test(value)
       },
