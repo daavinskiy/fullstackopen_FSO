@@ -166,6 +166,10 @@ const App = () => {
         setNewNumber('')
         showNotification(`${data.name} added`)
       })
+
+      .catch(error => {
+        showError(error.response.data.error)
+      })
   }
 
   const removePerson = (person) => {
