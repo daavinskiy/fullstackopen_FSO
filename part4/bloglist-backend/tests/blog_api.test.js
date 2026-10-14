@@ -65,3 +65,29 @@ test('likes defaults to zero if missing', async () => {
 
   assert.strictEqual(response.body.likes, 0)
 })
+
+test('blog without title is not added', async () => {
+  const newBlog = {
+    author: 'Test Author',
+    url: 'https://example.com/no-title',
+    likes: 5
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+})
+
+test('blog without url is not added', async () => {
+  const newBlog = {
+    title: 'Blog without URL',
+    author: 'Test Author',
+    likes: 5
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(400)
+})

@@ -30,6 +30,12 @@ app.get('/api/blogs', async (request, response) => {
 })
 
 app.post('/api/blogs', async (request, response) => {
+  if (!request.body.title || !request.body.url) {
+    return response.status(400).json({
+      error: 'title or url is missing'
+    })
+  }
+
   const blog = {
     id: String(Math.max(0, ...blogs.map(blog => Number(blog.id))) + 1),
     title: request.body.title,
