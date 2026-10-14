@@ -1,5 +1,6 @@
 
 const express = require('express')
+const bcrypt = require('bcryptjs')
 const app = express()
 
 app.use(express.json())
@@ -20,6 +21,9 @@ let blogs = [
     likes: 12
   }
 ]
+
+let users = []
+let nextUserId = 1
 
 app.get('/', (request, response) => {
   response.send('<h1>Blog List</h1>')
@@ -82,6 +86,55 @@ app.put('/api/blogs/:id', async (request, response) => {
   }
 
   response.status(200).json(blog)
+})
+
+app.get('/api/users', (request, response) => {
+  const usersWithoutPasswords = users.map(user => ({
+    id: user.id,
+    username: user.username,
+    name: user.name
+  }))
+
+  response.json(usersWithoutPasswords)
+})
+
+app.post('/api/users', async (request, response) => {
+  const { username, name, password } = request.body
+
+  if (!username || !password) {
+    return response.status(400).json({
+      error: 'username and password are required'
+    })
+  }
+
+  if (password.length < 3) {
+    return response.status(400).json({
+      error: 'password must contain at least 3 characters'
+    })
+  }
+
+  if (users.some(user => user.username === username)) {
+    return response.status(400).json({
+      error: 'username must be unique'
+    })
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10)
+
+  const user = {
+    id: String(nextUserId++),
+    username,
+    name,
+    passwordHash
+  }
+
+  users = users.concat(user)
+
+  response.status(201).json({
+    id: user.id,
+    username: user.username,
+    name: user.name
+  })
 })
 
 module.exports = app
