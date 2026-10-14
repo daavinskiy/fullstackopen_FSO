@@ -91,3 +91,25 @@ test('blog without url is not added', async () => {
     .send(newBlog)
     .expect(400)
 })
+
+test('a blog can be deleted', async () => {
+  const blogsAtStart = await api.get('/api/blogs')
+  const blogToDelete = blogsAtStart.body[0]
+
+  await api
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .expect(204)
+
+  const blogsAtEnd = await api.get('/api/blogs')
+
+  assert.strictEqual(
+    blogsAtEnd.body.length,
+    blogsAtStart.body.length - 1
+  )
+
+  const deletedBlog = blogsAtEnd.body.find(
+    blog => blog.id === blogToDelete.id
+  )
+
+  assert.strictEqual(deletedBlog, undefined)
+})

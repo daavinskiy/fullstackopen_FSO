@@ -49,4 +49,12 @@ app.post('/api/blogs', async (request, response) => {
   response.status(201).json(blog)
 })
 
+app.delete('/api/blogs/:id', async (request, response) => {
+  const id = request.params.id
+
+  blogs = blogs.filter(blog => blog.id !== id)
+
+  response.status(204).end()
+})
+
 module.exports = app
