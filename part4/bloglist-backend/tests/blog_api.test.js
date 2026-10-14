@@ -151,7 +151,6 @@ test('a blog can be deleted', async () => {
   assert.strictEqual(deletedBlog, undefined)
 })
 
-
 test('a blog can be updated', async () => {
   const blogsAtStart = await api.get('/api/blogs')
   const blogToUpdate = blogsAtStart.body[0]
@@ -177,4 +176,3 @@ test('a blog can be updated', async () => {
 
   assert.strictEqual(blogAfterUpdate.likes, updatedBlog.likes)
 })
-

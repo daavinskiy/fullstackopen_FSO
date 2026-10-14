@@ -1,6 +1,7 @@
 
 const express = require('express')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 const Blog = require('./models/blog')
 const User = require('./models/user')
 const app = express()
@@ -152,6 +153,44 @@ app.post('/api/users', async (request, response, next) => {
 
     const savedUser = await user.save()
     response.status(201).json(savedUser)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.post('/api/login', async (request, response, next) => {
+  try {
+    const { username, password } = request.body
+
+    const user = await User.findOne({ username })
+
+    const passwordCorrect =
+      user === null
+        ? false
+        : await bcrypt.compare(password, user.passwordHash)
+
+    if (!(user && passwordCorrect)) {
+      return response.status(401).json({
+        error: 'invalid username or password',
+      })
+    }
+
+    const userForToken = {
+      username: user.username,
+      id: user._id,
+    }
+
+    const token = jwt.sign(
+      userForToken,
+      process.env.SECRET,
+      { expiresIn: '1h' }
+    )
+
+    response.status(200).json({
+      token,
+      username: user.username,
+      name: user.name,
+    })
   } catch (error) {
     next(error)
   }
