@@ -63,3 +63,39 @@ test('favorite blog has the most likes', () => {
     likes: 12
   })
 })
+
+test('most blogs', () => {
+  const blogs = [
+    {
+      title: 'Blog 1',
+      author: 'Author 1',
+      url: 'https://example.com/1',
+      likes: 5
+    },
+    {
+      title: 'Blog 2',
+      author: 'Author 2',
+      url: 'https://example.com/2',
+      likes: 7
+    },
+    {
+      title: 'Blog 3',
+      author: 'Author 1',
+      url: 'https://example.com/3',
+      likes: 3
+    },
+    {
+      title: 'Blog 4',
+      author: 'Author 1',
+      url: 'https://example.com/4',
+      likes: 8
+    }
+  ]
+
+  const result = listHelper.mostBlogs(blogs)
+
+  assert.deepStrictEqual(result, {
+    author: 'Author 1',
+    blogs: 3
+  })
+})
