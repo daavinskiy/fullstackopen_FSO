@@ -1,9 +1,13 @@
-
 const express = require('express')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const Blog = require('./models/blog')
 const User = require('./models/user')
+const {
+  tokenExtractor,
+  userExtractor,
+} = require('./utils/middleware')
+
 const app = express()
 
 app.use(express.json())
@@ -24,57 +28,77 @@ app.get('/api/blogs', async (request, response, next) => {
   }
 })
 
-app.post('/api/blogs', async (request, response, next) => {
-  try {
-    const { title, author, url, likes, userId } = request.body
+app.post(
+  '/api/blogs',
+  tokenExtractor,
+  userExtractor,
+  async (request, response, next) => {
+    try {
+      const { title, author, url, likes } = request.body
 
-    if (!title || !url) {
-      return response.status(400).json({
-        error: 'title or url is missing',
-      })
-    }
+      if (!title || !url) {
+        return response.status(400).json({
+          error: 'title or url is missing',
+        })
+      }
 
-    let user = null
-
-    if (userId) {
-      user = await User.findById(userId)
+      const user = await User.findById(request.user.id)
 
       if (!user) {
-        return response.status(400).json({
+        return response.status(401).json({
           error: 'user not found',
         })
       }
-    }
 
-    const blog = new Blog({
-      title,
-      author,
-      url,
-      likes: likes ?? 0,
-      user: user ? user._id : undefined,
-    })
+      const blog = new Blog({
+        title,
+        author,
+        url,
+        likes: likes ?? 0,
+        user: user._id,
+      })
 
-    const savedBlog = await blog.save()
+      const savedBlog = await blog.save()
 
-    if (user) {
       user.blogs = user.blogs.concat(savedBlog._id)
       await user.save()
+
+      response.status(201).json(savedBlog)
+    } catch (error) {
+      next(error)
     }
-
-    response.status(201).json(savedBlog)
-  } catch (error) {
-    next(error)
   }
-})
+)
 
-app.delete('/api/blogs/:id', async (request, response, next) => {
-  try {
-    await Blog.findByIdAndDelete(request.params.id)
-    response.status(204).end()
-  } catch (error) {
-    next(error)
+
+app.delete(
+  '/api/blogs/:id',
+  tokenExtractor,
+  userExtractor,
+  async (request, response, next) => {
+    try {
+      const blog = await Blog.findById(request.params.id)
+
+      if (!blog) {
+        return response.status(404).json({
+          error: 'blog not found',
+        })
+      }
+
+      if (blog.user.toString() !== request.user.id) {
+        return response.status(403).json({
+          error: 'only the owner can delete this blog',
+        })
+      }
+
+      await Blog.findByIdAndDelete(blog._id)
+      response.status(204).end()
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
+
 
 app.put('/api/blogs/:id', async (request, response, next) => {
   try {
