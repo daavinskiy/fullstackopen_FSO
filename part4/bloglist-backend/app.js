@@ -1,3 +1,4 @@
+
 const express = require('express')
 const app = express()
 
@@ -13,7 +14,7 @@ let blogs = [
     id: '2',
     title: 'Canonical String Reduction',
     author: 'Edsger W. Dijkstra',
-    url: 'https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    url: 'https://www.cs.utexas.edu/~~EWD/transcriptions/EWD08xx/EWD808.html',
     likes: 12
   }
 ]
@@ -22,7 +23,7 @@ app.get('/', (request, response) => {
   response.send('<h1>Blog List</h1>')
 })
 
-app.get('/api/blogs', (request, response) => {
+app.get('/api/blogs', async (request, response) => {
   response.json(blogs)
 })
 
