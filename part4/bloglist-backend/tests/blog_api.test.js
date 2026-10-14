@@ -49,3 +49,19 @@ test('a new blog can be added', async () => {
     blogsAtStart.body.length + 1
   )
 })
+
+test('likes defaults to zero if missing', async () => {
+  const newBlog = {
+    title: 'Blog without likes',
+    author: 'Test Author',
+    url: 'https://example.com/no-likes'
+  }
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  assert.strictEqual(response.body.likes, 0)
+})
