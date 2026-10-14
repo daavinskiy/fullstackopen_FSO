@@ -1,140 +1,127 @@
 
 const express = require('express')
 const bcrypt = require('bcryptjs')
+const Blog = require('./models/blog')
+const User = require('./models/user')
 const app = express()
 
 app.use(express.json())
-
-let blogs = [
-  {
-    id: '1',
-    title: 'Go To Statement Considered Harmful',
-    author: 'Edsger W. Dijkstra',
-    url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf',
-    likes: 5
-  },
-  {
-    id: '2',
-    title: 'Canonical String Reduction',
-    author: 'Edsger W. Dijkstra',
-    url: 'https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
-    likes: 12
-  }
-]
-
-let users = []
-let nextUserId = 1
 
 app.get('/', (request, response) => {
   response.send('<h1>Blog List</h1>')
 })
 
-app.get('/api/blogs', async (request, response) => {
-  response.json(blogs)
-})
-
-app.post('/api/blogs', async (request, response) => {
-  if (!request.body.title || !request.body.url) {
-    return response.status(400).json({
-      error: 'title or url is missing'
-    })
+app.get('/api/blogs', async (request, response, next) => {
+  try {
+    const blogs = await Blog.find({})
+    response.json(blogs)
+  } catch (error) {
+    next(error)
   }
-
-  const blog = {
-    id: String(Math.max(0, ...blogs.map(blog => Number(blog.id))) + 1),
-    title: request.body.title,
-    author: request.body.author,
-    url: request.body.url,
-    likes: request.body.likes ?? 0
-  }
-
-  blogs = blogs.concat(blog)
-
-  response.status(201).json(blog)
 })
 
-app.delete('/api/blogs/:id', async (request, response) => {
-  const id = request.params.id
+app.post('/api/blogs', async (request, response, next) => {
+  try {
+    const { title, author, url, likes } = request.body
 
-  blogs = blogs.filter(blog => blog.id !== id)
-
-  response.status(204).end()
-})
-
-app.put('/api/blogs/:id', async (request, response) => {
-  const id = request.params.id
-  const updatedBlog = request.body
-
-  blogs = blogs.map(blog => {
-    if (blog.id === id) {
-      return {
-        ...blog,
-        ...updatedBlog,
-        id: blog.id
-      }
+    if (!title || !url) {
+      return response.status(400).json({
+        error: 'title or url is missing',
+      })
     }
 
-    return blog
-  })
-
-  const blog = blogs.find(blog => blog.id === id)
-
-  if (!blog) {
-    return response.status(404).json({
-      error: 'blog not found'
+    const blog = new Blog({
+      title,
+      author,
+      url,
+      likes: likes ?? 0,
     })
-  }
 
-  response.status(200).json(blog)
+    const savedBlog = await blog.save()
+    response.status(201).json(savedBlog)
+  } catch (error) {
+    next(error)
+  }
 })
 
-app.get('/api/users', (request, response) => {
-  const usersWithoutPasswords = users.map(user => ({
-    id: user.id,
-    username: user.username,
-    name: user.name
-  }))
-
-  response.json(usersWithoutPasswords)
+app.delete('/api/blogs/:id', async (request, response, next) => {
+  try {
+    await Blog.findByIdAndDelete(request.params.id)
+    response.status(204).end()
+  } catch (error) {
+    next(error)
+  }
 })
 
-app.post('/api/users', async (request, response) => {
-  const { username, name, password } = request.body
+app.put('/api/blogs/:id', async (request, response, next) => {
+  try {
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      request.params.id,
+      request.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    )
 
-  if (!username || !password) {
-    return response.status(400).json({
-      error: 'username and password are required'
+    if (!updatedBlog) {
+      return response.status(404).json({
+        error: 'blog not found',
+      })
+    }
+
+    response.status(200).json(updatedBlog)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.get('/api/users', async (request, response, next) => {
+  try {
+    const users = await User.find({})
+    response.json(users)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.post('/api/users', async (request, response, next) => {
+  try {
+    const { username, name, password } = request.body
+
+    if (!username || !password) {
+      return response.status(400).json({
+        error: 'username and password are required',
+      })
+    }
+
+    if (password.length < 3) {
+      return response.status(400).json({
+        error: 'password must contain at least 3 characters',
+      })
+    }
+
+    const existingUser = await User.findOne({ username })
+
+    if (existingUser) {
+      return response.status(400).json({
+        error: 'username must be unique',
+      })
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10)
+
+    const user = new User({
+      username,
+      name,
+      passwordHash,
     })
+
+    const savedUser = await user.save()
+    response.status(201).json(savedUser)
+  } catch (error) {
+    next(error)
   }
-
-  if (password.length < 3) {
-    return response.status(400).json({
-      error: 'password must contain at least 3 characters'
-    })
-  }
-
-  if (users.some(user => user.username === username)) {
-    return response.status(400).json({
-      error: 'username must be unique'
-    })
-  }
-
-  const passwordHash = await bcrypt.hash(password, 10)
-
-  const user = {
-    id: String(nextUserId++),
-    username,
-    name,
-    passwordHash
-  }
-
-  users = users.concat(user)
-
-  response.status(201).json({
-    id: user.id,
-    username: user.username,
-    name: user.name
-  })
 })
 
 module.exports = app

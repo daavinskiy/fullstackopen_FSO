@@ -1,10 +1,41 @@
 
-const { test } = require('node:test')
+const { test, before, beforeEach, after } = require('node:test')
 const assert = require('node:assert')
+const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
+const Blog = require('../models/blog')
+const config = require('../utils/config')
 
 const api = supertest(app)
+
+const initialBlogs = [
+  {
+    title: 'Go To Statement Considered Harmful',
+    author: 'Edsger W. Dijkstra',
+    url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf',
+    likes: 5,
+  },
+  {
+    title: 'Canonical String Reduction',
+    author: 'Edsger W. Dijkstra',
+    url: 'https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    likes: 12,
+  },
+]
+
+before(async () => {
+  await mongoose.connect(config.TEST_MONGODB_URI)
+})
+
+beforeEach(async () => {
+  await Blog.deleteMany({})
+  await Blog.insertMany(initialBlogs)
+})
+
+after(async () => {
+  await mongoose.connection.close()
+})
 
 test('blogs are returned as json', async () => {
   const response = await api
@@ -31,7 +62,7 @@ test('a new blog can be added', async () => {
     title: 'Testing with Supertest',
     author: 'Test Author',
     url: 'https://example.com/testing',
-    likes: 10
+    likes: 10,
   }
 
   const blogsAtStart = await api.get('/api/blogs')
@@ -54,7 +85,7 @@ test('likes defaults to zero if missing', async () => {
   const newBlog = {
     title: 'Blog without likes',
     author: 'Test Author',
-    url: 'https://example.com/no-likes'
+    url: 'https://example.com/no-likes',
   }
 
   const response = await api
@@ -70,26 +101,32 @@ test('blog without title is not added', async () => {
   const newBlog = {
     author: 'Test Author',
     url: 'https://example.com/no-title',
-    likes: 5
+    likes: 5,
   }
 
   await api
     .post('/api/blogs')
     .send(newBlog)
     .expect(400)
+
+  const blogsAfter = await api.get('/api/blogs')
+  assert.strictEqual(blogsAfter.body.length, 2)
 })
 
 test('blog without url is not added', async () => {
   const newBlog = {
     title: 'Blog without URL',
     author: 'Test Author',
-    likes: 5
+    likes: 5,
   }
 
   await api
     .post('/api/blogs')
     .send(newBlog)
     .expect(400)
+
+  const blogsAfter = await api.get('/api/blogs')
+  assert.strictEqual(blogsAfter.body.length, 2)
 })
 
 test('a blog can be deleted', async () => {
@@ -120,7 +157,7 @@ test('a blog can be updated', async () => {
 
   const updatedBlog = {
     ...blogToUpdate,
-    likes: blogToUpdate.likes + 1
+    likes: blogToUpdate.likes + 1,
   }
 
   const response = await api
