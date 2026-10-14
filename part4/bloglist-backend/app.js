@@ -13,7 +13,10 @@ app.get('/', (request, response) => {
 
 app.get('/api/blogs', async (request, response, next) => {
   try {
-    const blogs = await Blog.find({})
+    const blogs = await Blog.find({}).populate('user', {
+      username: 1,
+      name: 1,
+    })
     response.json(blogs)
   } catch (error) {
     next(error)
@@ -30,25 +33,29 @@ app.post('/api/blogs', async (request, response, next) => {
       })
     }
 
-    const blog = new Blog({
-      title,
-      author,
-      url,
-      likes: likes ?? 0,
-      user: userId,
-    })
-
-    const savedBlog = await blog.save()
+    let user = null
 
     if (userId) {
-      const user = await User.findById(userId)
+      user = await User.findById(userId)
 
       if (!user) {
         return response.status(400).json({
           error: 'user not found',
         })
       }
+    }
 
+    const blog = new Blog({
+      title,
+      author,
+      url,
+      likes: likes ?? 0,
+      user: user ? user._id : undefined,
+    })
+
+    const savedBlog = await blog.save()
+
+    if (user) {
       user.blogs = user.blogs.concat(savedBlog._id)
       await user.save()
     }
@@ -93,7 +100,12 @@ app.put('/api/blogs/:id', async (request, response, next) => {
 
 app.get('/api/users', async (request, response, next) => {
   try {
-    const users = await User.find({})
+    const users = await User.find({}).populate('blogs', {
+      title: 1,
+      author: 1,
+      url: 1,
+      likes: 1,
+    })
     response.json(users)
   } catch (error) {
     next(error)
