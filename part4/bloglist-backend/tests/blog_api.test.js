@@ -19,7 +19,7 @@ const initialBlogs = [
   {
     title: 'Canonical String Reduction',
     author: 'Edsger W. Dijkstra',
-    url: 'https://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    url: 'https://www.cs.utexas.edu/~EWD/transcriptions/EWD808.html',
     likes: 12,
   },
 ]

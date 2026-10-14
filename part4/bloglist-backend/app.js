@@ -22,7 +22,7 @@ app.get('/api/blogs', async (request, response, next) => {
 
 app.post('/api/blogs', async (request, response, next) => {
   try {
-    const { title, author, url, likes } = request.body
+    const { title, author, url, likes, userId } = request.body
 
     if (!title || !url) {
       return response.status(400).json({
@@ -35,9 +35,24 @@ app.post('/api/blogs', async (request, response, next) => {
       author,
       url,
       likes: likes ?? 0,
+      user: userId,
     })
 
     const savedBlog = await blog.save()
+
+    if (userId) {
+      const user = await User.findById(userId)
+
+      if (!user) {
+        return response.status(400).json({
+          error: 'user not found',
+        })
+      }
+
+      user.blogs = user.blogs.concat(savedBlog._id)
+      await user.save()
+    }
+
     response.status(201).json(savedBlog)
   } catch (error) {
     next(error)

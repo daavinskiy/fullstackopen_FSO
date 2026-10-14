@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const app = require('../app')
 const User = require('../models/user')
+const Blog = require('../models/blog')
 const config = require('../utils/config')
 
 const api = supertest(app)
@@ -128,4 +129,41 @@ test('user with duplicate username is not created', async () => {
 
   const users = await User.find({})
   assert.strictEqual(users.length, 1)
+})
+
+test('a blog can be associated with a user', async () => {
+  const newUser = {
+    username: 'blogger',
+    name: 'Blog Author',
+    password: 'secret123',
+  }
+
+  const userResponse = await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(201)
+
+  const newBlog = {
+    title: 'A test blog',
+    author: 'Blog Author',
+    url: 'https://example.com/blog',
+    userId: userResponse.body.id,
+  }
+
+  const blogResponse = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+
+  assert.strictEqual(blogResponse.body.user, userResponse.body.id)
+
+  const updatedUser = await User.findById(userResponse.body.id)
+
+  assert.strictEqual(updatedUser.blogs.length, 1)
+  assert.strictEqual(
+    updatedUser.blogs[0].toString(),
+    blogResponse.body.id
+  )
+
+  await Blog.findByIdAndDelete(blogResponse.body.id)
 })
