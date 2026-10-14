@@ -57,4 +57,31 @@ app.delete('/api/blogs/:id', async (request, response) => {
   response.status(204).end()
 })
 
+app.put('/api/blogs/:id', async (request, response) => {
+  const id = request.params.id
+  const updatedBlog = request.body
+
+  blogs = blogs.map(blog => {
+    if (blog.id === id) {
+      return {
+        ...blog,
+        ...updatedBlog,
+        id: blog.id
+      }
+    }
+
+    return blog
+  })
+
+  const blog = blogs.find(blog => blog.id === id)
+
+  if (!blog) {
+    return response.status(404).json({
+      error: 'blog not found'
+    })
+  }
+
+  response.status(200).json(blog)
+})
+
 module.exports = app
