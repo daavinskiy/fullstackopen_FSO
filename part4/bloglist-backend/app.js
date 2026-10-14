@@ -95,6 +95,12 @@ app.post('/api/users', async (request, response, next) => {
       })
     }
 
+    if (username.length < 3) {
+      return response.status(400).json({
+        error: 'username must contain at least 3 characters',
+      })
+    }
+
     if (password.length < 3) {
       return response.status(400).json({
         error: 'password must contain at least 3 characters',

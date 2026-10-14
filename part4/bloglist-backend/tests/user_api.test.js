@@ -51,3 +51,81 @@ test('a user can be created and listed', async () => {
   assert.strictEqual(user.password, undefined)
   assert.strictEqual(user.passwordHash, undefined)
 })
+
+test('user with too short username is not created', async () => {
+  const newUser = {
+    username: 'ab',
+    password: 'secret123',
+  }
+
+  await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+
+  const users = await User.find({})
+  assert.strictEqual(users.length, 0)
+})
+
+test('user with too short password is not created', async () => {
+  const newUser = {
+    username: 'testuser',
+    password: 'ab',
+  }
+
+  await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+
+  const users = await User.find({})
+  assert.strictEqual(users.length, 0)
+})
+
+test('user without username is not created', async () => {
+  const newUser = {
+    password: 'secret123',
+  }
+
+  await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+
+  const users = await User.find({})
+  assert.strictEqual(users.length, 0)
+})
+
+test('user without password is not created', async () => {
+  const newUser = {
+    username: 'testuser',
+  }
+
+  await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+
+  const users = await User.find({})
+  assert.strictEqual(users.length, 0)
+})
+
+test('user with duplicate username is not created', async () => {
+  const newUser = {
+    username: 'testuser',
+    password: 'secret123',
+  }
+
+  await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(201)
+
+  await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+
+  const users = await User.find({})
+  assert.strictEqual(users.length, 1)
+})
